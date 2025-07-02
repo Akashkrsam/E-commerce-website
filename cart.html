@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shopping Cart</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>My Shopping Cart</h1>
+  <div id="cart-items"></div>
+  <button onclick="placeOrder()">Place Order</button>
+  <script>
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    async function loadCart() {
+      const res = await fetch("http://localhost:5000/api/users/products");
+      const products = await res.json();
+      const container = document.getElementById("cart-items");
+      container.innerHTML = cart.map(item => {
+        const product = products.find(p => p._id === item.productId);
+        return `<p><strong>${product.name}</strong> - ₹${product.price}</p>`;
+      }).join('');
+    }
+
+    async function placeOrder() {
+      const userId = localStorage.getItem("userId") || prompt("Enter your user ID:");
+      const address = prompt("Enter your delivery address:");
+      const order = { userId, address, products: cart };
+      const res = await fetch("http://localhost:5000/api/users/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(order)
+      });
+      const data = await res.json();
+      alert(data.message);
+      localStorage.removeItem("cart");
+      window.location.href = "index.html";
+    }
+
+    loadCart();
+  </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Orders</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>My Orders</h1>
+  <div id="order-list"></div>
+  <button onclick="logout()">Logout</button>
+  <script>
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      alert("Please login first.");
+      window.location.href = "login.html";
+    }
+
+    fetch("http://localhost:5000/api/users/orders")
+      .then(res => res.json())
+      .then(orders => {
+        const container = document.getElementById("order-list");
+        const myOrders = orders.filter(order => order.userId === userId);
+        if (myOrders.length === 0) {
+          container.innerHTML = "<p>No orders found.</p>";
+          return;
+        }
+        container.innerHTML = myOrders.map(order => `
+          <div style="border:1px solid #ccc; padding:10px; margin:10px 0;">
+            <p><strong>Order ID:</strong> ${order._id}</p>
+            <p><strong>Address:</strong> ${order.address}</p>
+            <p><strong>Products:</strong></p>
+            <ul>${order.products.map(p => `<li>Product ID: ${p.productId}, Quantity: ${p.quantity}</li>`).join('')}</ul>
+          </div>
+        `).join('');
+      });
+
+    function logout() {
+      localStorage.removeItem("userId");
+      alert("Logged out");
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>
